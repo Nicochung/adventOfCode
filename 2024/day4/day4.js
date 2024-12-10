@@ -53,8 +53,8 @@ function searchXmas(arr) {
         EIGHT_DIR.forEach(([dx, dy]) => {
           // X (i, j)
           // M (i + dx, j + dy)
-          // A (i + 2*dx, j + dy)
-          // S (i + 3*dx, j + dy)
+          // A (i + 2*dx, j + 3*dy)
+          // S (i + 3*dx, j + 3*dy)
           if (willExceedBoundary(i + 3 * dx, j + 3 * dy, m, n)) return;
           if (arr[i + dx].at(j + dy) !== "M") return;
           if (arr[i + 2 * dx].at(j + 2 * dy) !== "A") return;
