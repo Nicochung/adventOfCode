@@ -4,8 +4,8 @@ const fs = require("node:fs");
 const readline = require("node:readline");
 
 async function processLineByLine() {
-  // const fileStream = fs.createReadStream("input.txt");
-  const fileStream = fs.createReadStream("sample.txt");
+  const fileStream = fs.createReadStream("input.txt");
+  // const fileStream = fs.createReadStream("sample.txt");
 
   const rl = readline.createInterface({
     input: fileStream,
@@ -46,11 +46,6 @@ async function processLineByLine() {
 
 processLineByLine();
 
-function exceedBoundary(i, j, m, n) {
-  if (i < 0 || i >= m || j < 0 || j >= n) return true;
-  return false;
-}
-
 function part1(disk) {
   let start = 0;
   let end = disk.length - 1;
@@ -78,59 +73,62 @@ function part1(disk) {
   console.log(id);
 }
 
-// function part2(disk) {
-//   let start = 0;
-//   let end = disk.length - 1;
-//   while (start < end) {
-//     if (disk[start] == null) {
-//       // Find size of space
-//       let temp = start + 1;
-//       while (disk[temp] == null) {
-//         temp++;
-//       }
-//       const spaceSize = temp - start;
+function findSizeOfFileId(disk, target) {
+  const firstIndex = disk.findIndex((v) => v === target);
+  if (firstIndex === -1) return [0, -1, -1];
+  const lastIndex = disk.findLastIndex((v) => v === target);
+  return [lastIndex - firstIndex + 1, firstIndex, lastIndex];
+}
 
-//       console.log({ spaceSize, temp });
-//       const fileId = disk[end];
-//       let temp2 = end - 1;
-//       while (disk[temp2] == fileId) {
-//         temp2--;
-//       }
-//       const fileIdSize = end - temp2;
-//       console.log({ fileIdSize, fileId });
+function findNContinuousSpace(disk, n, startPos, endPos) {
+  let currentSpace = 0;
+  for (let i = startPos; i < endPos; ++i) {
+    if (currentSpace === n) return [i - n, i];
+    if (disk[i] == null) {
+      currentSpace += 1;
+    } else {
+      currentSpace = 0;
+    }
+  }
+  return null;
+}
 
-//       if (fileIdSize <= spaceSize) {
-//         // swap
-//       } else {
-//         // the current fileIdSize doesn't fit, find the next fileId that fit
-//         while (fileIdSize > spaceSize) {
-//           while (disk[temp2] == fileId || disk[temp2] == null) {
-//             // TODO
-//             return;
-//           }
-//           // Find the next fileId that will fit
-//         }
-//       }
-//       // Find size of fileId from end
+function part2(disk) {
+  let start = 0;
+  let end = disk.length - 1;
+  let fileId = disk[end];
 
-//       // // Perform swap
-//       // // const temp = disk[start];
-//       // // find the pos from end where disk[end] !==null
-//       // while (start <= end && disk[end] == null) {
-//       //   end--;
-//       // }
-
-//       // disk[start] = disk[end];
-//       // disk[end] = null;
-//       start++;
-//       end--;
-//     } else {
-//       start++;
-//     }
-//   }
-//   let id = 0;
-//   for (let i = 0; disk[i] != null; ++i) {
-//     id += disk[i] * i;
-//   }
-//   console.log(id);
-// }
+  while (fileId > 0) {
+    // Find the size of the current fileId
+    const [size, firstIndex, lastIndex] = findSizeOfFileId(disk, fileId);
+    // disk[end-size+1] --> disk[end] are fileId
+    // Find space from start where it can fit size
+    const space = findNContinuousSpace(disk, size, 0, end);
+    // console.log({ fileId, size, space, start, end });
+    if (space == null || size === 0) {
+      // Not enough space to fit the current fileId
+      end = firstIndex - 1;
+    } else {
+      // Enough space
+      const [startIdx, endIdx] = space;
+      // Copy value to space
+      for (let i = startIdx; i < endIdx; ++i) {
+        disk[i] = fileId;
+      }
+      // Mark original place null
+      for (let i = firstIndex; i <= lastIndex; ++i) {
+        disk[i] = null;
+      }
+      start = endIdx;
+      end = firstIndex - 1;
+    }
+    fileId--;
+    // console.log(disk.map((v) => (v == null ? "." : v)).join(""));
+  }
+  let id = 0;
+  for (let i = 0; i < disk.length; ++i) {
+    if (disk[i] == null) continue;
+    id += disk[i] * i;
+  }
+  console.log(id);
+}
