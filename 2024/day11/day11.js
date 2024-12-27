@@ -25,12 +25,14 @@ async function processLineByLine() {
 
 processLineByLine();
 
+const CNT = 75;
+
 function part1(input) {
-  for (let i = 0; i < 25; ++i) {
+  for (let i = 0; i < CNT; ++i) {
     input = helper(input);
     // console.log(input);
   }
-  console.log(input.length);
+  console.log("part1", input.length);
 }
 
 function helper(arr) {
@@ -46,29 +48,64 @@ function helper(arr) {
   });
 }
 
-function part2(input) {
-  for (let i = 0; i < 75; ++i) {
-    console.log(i);
-    input = helper2(input);
-  }
-  console.log(input.length);
-}
-
 const cache = {};
-
-function helper2(arr) {
-  return arr.flatMap((val) => {
-    if (cache[val] != null) return cache[val];
-    if (val === "0") {
-      cache[val] = "1";
-    } else if (val.length % 2 === 0) {
-      cache[val] = [
-        (+val.substring(0, val.length / 2)).toString(),
-        (+val.substring(val.length / 2)).toString(),
-      ];
-    } else {
-      cache[val] = (+val * 2024).toString();
-    }
-    return cache[val];
+function part2(input) {
+  let len = 0;
+  input.forEach((num) => {
+    len += helper2(+num, CNT);
   });
+  // console.log("cache", cache);
+  console.log("part2", len);
 }
+
+function helper2(val, step) {
+  // Base Condition
+  // Reach the end
+
+  if (step === 0) {
+    return 1;
+  }
+
+  const key = `${val}|${step}`;
+  // if found in cache, return
+  if (cache[key] != null) {
+    return cache[key];
+  }
+  // Replace 0 with 1
+  if (val === 0) {
+    // const len = helper2(1, step - 1);
+    cache[key] = helper2(1, step - 1);
+    return cache[key];
+  }
+
+  // Even number of digit split
+  const strVal = val.toString();
+  if (strVal.toString().length % 2 === 0) {
+    const first = +strVal.substring(0, strVal.length / 2);
+    const second = +strVal.substring(strVal.length / 2);
+
+    const firstLen = helper2(first, step - 1);
+    const secondLen = helper2(second, step - 1);
+    cache[key] = firstLen + secondLen;
+    return cache[key];
+  }
+  cache[key] = helper2(val * 2024, step - 1);
+  return cache[key];
+}
+
+// function helper2(arr) {
+//   return arr.flatMap((val) => {
+//     if (cache[val] != null) return cache[val];
+//     if (val === "0") {
+//       cache[val] = "1";
+//     } else if (val.length % 2 === 0) {
+//       cache[val] = [
+//         (+val.substring(0, val.length / 2)).toString(),
+//         (+val.substring(val.length / 2)).toString(),
+//       ];
+//     } else {
+//       cache[val] = (+val * 2024).toString();
+//     }
+//     return cache[val];
+//   });
+// }
